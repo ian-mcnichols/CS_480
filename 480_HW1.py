@@ -113,8 +113,17 @@ def get_distances(locations):
     return distances.copy()
 
 
+def display_suspects(times_data):
+    pairs = []
+    for suspicious_time in times_data:
+        suspects = times_data[suspicious_time]
+        for suspect in suspects:
+            pairs.append(suspect)
+    print("pairs:", pairs)
+    return
+
 if __name__ == "__main__":
-    location_data = get_user_data(display=True)
+    location_data = get_user_data(display=False)
     unique_times = compare_times(location_data)
     important = location_per_time(unique_times, location_data)
     times_data = {}
@@ -122,4 +131,17 @@ if __name__ == "__main__":
         distances_data = get_distances(important[time])
         if distances_data:
             times_data[time] = distances_data
-    print(times_data)
+    pairs = []
+    for suspicious_time in times_data:
+        suspects = times_data[suspicious_time]
+        for suspect in suspects:
+            pairs.append(suspect)
+    for pair in pairs:
+        lats1 = [x[1] for x in location_data[pair[0]]]
+        longs1 = [x[2] for x in location_data[pair[0]]]
+        lats2 = [x[1] for x in location_data[pair[1]]]
+        longs2 = [x[2] for x in location_data[pair[1]]]
+        plt.scatter(lats1, longs1, label=pair[0])
+        plt.scatter(lats2, longs2, label=pair[1])
+        plt.legend()
+        plt.show()
