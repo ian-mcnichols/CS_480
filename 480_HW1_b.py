@@ -11,6 +11,7 @@ import datetime
 from geopy.distance import geodesic
 import numpy as np
 import scipy
+from sklearn.linear_model import LinearRegression
 
 FINAL_LOCATION = [43.33352346016208, -8.40940731683987]
 
@@ -69,30 +70,45 @@ def write_data_file(display=False):
         timed_locations = list(zip(user_times, user_activities, actual_lats, actual_longs, activity_ids))
         # Add list of times and locations for the specific user to a dictionary of all the suspects
         for datapoint in timed_locations:
+            lat = datapoint[2]
+            long = datapoint[3]
+            time = datapoint[1]
             csv_file.writelines(str(datapoint[1]) + ", " + str(datapoint[0]) + ", " +
-                                str(datapoint[2] * 10e12) + ", " + str(datapoint[3]*10e12) +
+                                str(datapoint[2]) + ", " + str(datapoint[3]) +
                                 ", " + str(datapoint[4]) + "\n")
     csv_file.close()
 
 
 def read_data_file():
     data = pd.read_csv("location_data.csv")
-    data_types = data.activity_id
+    data_types = data.activity
+    data_types = [x for x in data_types]
+    data_types = convert_to_int(data_types)
     return data.lat, data.long, data.time, data_types
 
 
+def convert_to_int(data):
+    for i in range(len(data)):
+        if data[i] == 'Driving':
+            data[i] = 1
+        elif data[i] == 'Walking':
+            data[i] = 2
+        elif data[i] == 'Inactive':
+            data[i] = 3
+        elif data[i] == 'Active':
+            data[i] = 4
+    return data
+
+
 def calculate_correlation(lat, long, time, data_types):
-    print(data_types.corr(lat, method='spearman'))
-    print(data_types.corr(lat, method='kendall'))
-    print(data_types.corr(lat, method='pearson'))
+    regression_model = LinearRegression()
+    print(lat.shape)
+    lat = [x for x in lat]
+    long = [x for x in long]
+    time = [x for x in time]
+    regression_model.fit([lat, long, time], data_types)
 
-    print(data_types.corr(long, method='spearman'))
-    print(data_types.corr(long, method='kendall'))
-    print(data_types.corr(long, method='pearson'))
-
-    print(data_types.corr(time, method='pearson'))
-    print(data_types.corr(time, method='kendall'))
-    print(data_types.corr(time, method='spearman'))
+    return
 
 
 if __name__ == "__main__":
