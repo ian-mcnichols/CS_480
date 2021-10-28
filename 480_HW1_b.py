@@ -102,16 +102,16 @@ def convert_to_int(data):
 
 def calculate_correlation(lat, long, time, data_types):
     regression_model = LinearRegression()
-    print(lat.shape)
     lat = [x for x in lat]
     long = [x for x in long]
     time = [x for x in time]
-    regression_model.fit([lat, long, time], data_types)
-
-    return
+    X = np.array([lat, long, time])
+    X = np.reshape(X, (19079, 3))
+    regression_model.fit(X, data_types)
+    print(regression_model.score(X, data_types))
 
 
 if __name__ == "__main__":
-    write_data_file()
+    #write_data_file()
     lats, longs, times, data_types = read_data_file()
     calculate_correlation(lats, longs, times, data_types)
