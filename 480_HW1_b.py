@@ -17,12 +17,12 @@ FINAL_LOCATION = [43.33352346016208, -8.40940731683987]
 
 
 def write_data_file(display=False):
-    csv_file = open("location_data.csv", "w")
+    csv_file = open("data/location_data.csv", "w")
     csv_file.writelines("activity,time,lat,long,activity_id\n")
     # Goes through the gps .csv and compiles the data into lists of users with times/locations
     users = {}
     usernames = []
-    sensoring_gps = pd.read_csv("sensoringData_gps.csv")
+    sensoring_gps = pd.read_csv("data/sensoringData_gps.csv")
     # grabbing all unique user id's
     for username in sensoring_gps.username:
         usernames.append(username)
@@ -50,6 +50,7 @@ def write_data_file(display=False):
         # Grab activity
         activity_ids = users[user].activity_id
         user_activities = users[user].activity
+        ids = users[user].id
         # Initialize location data with pickup point
         actual_longs = [FINAL_LOCATION[1]]
         actual_lats = [FINAL_LOCATION[0]]
@@ -67,13 +68,13 @@ def write_data_file(display=False):
         # Reverse so data starts at first location instead of pickup point
         actual_longs = actual_longs[1:][::-1]
         actual_lats = actual_lats[1:][::-1]
-        timed_locations = list(zip(user_times, user_activities, actual_lats, actual_longs, activity_ids))
+        timed_locations = list(zip(user_times, user_activities, actual_lats, actual_longs, activity_ids, ids))
         # Add list of times and locations for the specific user to a dictionary of all the suspects
         for datapoint in timed_locations:
             lat = datapoint[2]
             long = datapoint[3]
             time = datapoint[1]
-            csv_file.writelines(str(datapoint[1]) + ", " + str(datapoint[0]) + ", " +
+            csv_file.writelines(str(datapoint[5]) + ", "+ str(datapoint[1]) + ", " + str(datapoint[0]) + ", " +
                                 str(datapoint[2]) + ", " + str(datapoint[3]) +
                                 ", " + str(datapoint[4]) + "\n")
     csv_file.close()
@@ -112,6 +113,6 @@ def calculate_correlation(lat, long, time, data_types):
 
 
 if __name__ == "__main__":
-    #write_data_file()
-    lats, longs, times, data_types = read_data_file()
-    calculate_correlation(lats, longs, times, data_types)
+    write_data_file()
+    #lats, longs, times, data_types = read_data_file()
+    #calculate_correlation(lats, longs, times, data_types)
