@@ -9,9 +9,15 @@ import math
 import matplotlib.pyplot as plt
 import datetime
 from geopy.distance import geodesic
+from sklearn.svm import SVC
+from sklearn.svm import SVR
 import numpy as np
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 import scipy
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import plot_confusion_matrix, ConfusionMatrixDisplay
 
 FINAL_LOCATION = [43.33352346016208, -8.40940731683987]
 
@@ -90,29 +96,59 @@ def read_data_file():
 
 def convert_to_int(data):
     for i in range(len(data)):
-        if data[i] == 'Driving':
+        if data[i] == 'Driving' or data[i] == ' Driving':
             data[i] = 1
-        elif data[i] == 'Walking':
+        elif data[i] == 'Walking' or data[i] == ' Walking':
             data[i] = 2
-        elif data[i] == 'Inactive':
+        elif data[i] == 'Inactive' or data[i] == ' Inactive':
             data[i] = 3
-        elif data[i] == 'Active':
+        elif data[i] == 'Active' or data[i] == ' Active':
             data[i] = 4
     return data
 
 
 def calculate_correlation(lat, long, time, data_types):
-    regression_model = LinearRegression()
+    data_types = convert_to_int(data_types)
+    #clf = make_pipeline(StandardScaler(), SVC(gamma='auto', kernel='rbf'))
     lat = [x for x in lat]
     long = [x for x in long]
     time = [x for x in time]
     X = np.array([lat, long, time])
     X = np.reshape(X, (19079, 3))
-    regression_model.fit(X, data_types)
-    print(regression_model.score(X, data_types))
+    #clf.fit(X, data_types)
+    #print("SVM:", clf.score(X, data_types))
+    '''
+    svr_rbf = SVR(kernel="rbf", C=100, gamma=0.1, epsilon=0.1)
+    svr_lin = SVR(kernel="linear", C=100, gamma="auto")
+    svr_poly = SVR(kernel="poly", C=100, gamma="auto", degree=3, epsilon=0.1, coef0=1)
+    svrs = [svr_rbf, svr_lin, svr_poly]
+    kernel_label = ["RBF", "Linear", "Polynomial"]
+    model_color = ["m", "c", "g"]
+    lw = 2
+
+    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 10), sharey=True)
+    for ix, svr in enumerate(svrs):
+        axes[ix].plot(
+            X,
+            svr.fit(X, data_types).predict(X),
+            color=model_color[ix],
+            lw=lw,
+            label="{} model".format(kernel_label[ix]),
+        )
+        print("Finished predicting model")
+    plt.show()
+    '''
+    # Use random forest regressor
+    model = RandomForestRegressor(max_features=3)
+    model.fit(X, data_types)
+    #disp = plot_confusion_matrix(model, X, data_types, cmap=plt.cm.Blues)
+    #plt.show()
+    print("random forest regressor score:", model.score(X, data_types))
+
+
 
 
 if __name__ == "__main__":
-    write_data_file()
-    #lats, longs, times, data_types = read_data_file()
-    #calculate_correlation(lats, longs, times, data_types)
+    #write_data_file()
+    lats, longs, times, data_types = read_data_file()
+    calculate_correlation(lats, longs, times, data_types)

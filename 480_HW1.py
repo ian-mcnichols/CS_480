@@ -23,7 +23,7 @@ def get_user_data(display=False):
     user_location_data = {}
     users = {}
     usernames = []
-    sensoring_gps = pd.read_csv("sensoringData_gps.csv")
+    sensoring_gps = pd.read_csv("data/sensoringData_gps.csv")
     # grabbing all unique user id's
     for username in sensoring_gps.username:
         usernames.append(username)
@@ -32,8 +32,14 @@ def get_user_data(display=False):
     for i in usernames:
         users[i] = sensoring_gps.loc[sensoring_gps['username'] == i]
     # Performing calculations on each suspect to get location data
+    # users that are close to each other: 
     for user in users:
         user_times = []
+        #good_users = [3, 8, 12, 13]
+        #if user not in good_users:
+        #    continue
+        #else:
+        #    print("user:", user)
         # Deciphering timestamp into year/day/hour
         for time in users[user].timestamp:
             datetime_obj = datetime.datetime.fromtimestamp(time)
@@ -136,12 +142,15 @@ if __name__ == "__main__":
         suspects = times_data[suspicious_time]
         for suspect in suspects:
             pairs.append(suspect)
+    print("Displaying data")
+
     for pair in pairs:
-        lats1 = [x[1] for x in location_data[pair[0]]]
-        longs1 = [x[2] for x in location_data[pair[0]]]
-        lats2 = [x[1] for x in location_data[pair[1]]]
-        longs2 = [x[2] for x in location_data[pair[1]]]
-        plt.scatter(lats1, longs1, label=pair[0])
-        plt.scatter(lats2, longs2, label=pair[1])
-        plt.legend()
-        plt.show()
+        for user in pairs:
+            print("user:", user)
+            lats1 = [x[1] for x in location_data[user[0]]]
+            longs1 = [x[2] for x in location_data[user[0]]]
+            path_data = open("path.txt", "w")
+            for i in range(len(lats1)):
+                path_data.writelines(str(lats1[i]) + ","+str(longs1[i])+",#ffffff\n")
+            path_data.close()
+            pause = input("Finished writing data for user:" + str(user[0]))
